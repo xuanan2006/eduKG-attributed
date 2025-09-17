@@ -1,0 +1,50 @@
+#prompt hiện đang dùng
+prompt = f"""
+    You are an expert information extraction system. Your task is to read the following text and extract a knowledge graph from it.
+    The graph consists of entities (instances), their attributes (properties), and the relationships between them.
+    The list of known classes is: {existing_classes}
+
+    Source Text:
+    "{text.strip()}"
+
+    Extract the information and return it as a single JSON object with three keys: "classes", "instances", and "relationships".
+
+    INSTRUCTIONS:
+    1.  **JSON Structure**:
+        - `classes`: A list of object types. You can add new classes to this list if appropriate. But avoid adding classes as much as possible when it could be an instance of an existing class.
+        - `instances`: A list of objects. Each object must have an "id", "name", "type", and "properties".
+            - `id`: Must be a unique, lowercase string with underscores instead of spaces and no accents (e.g., "dh_bach_khoa_tphcm").
+            - `name`: The name of the entity as found in the text.
+            - `type`: The class of the entity (e.g., "Trường đại học").
+            - `properties`: A JSON object containing key-value attributes of the instance extracted *directly from the text*. If no properties are found, use an empty object {{}}. The keys for properties must be in snake_case.
+        - `relationships`: A list of objects, each with "start_node_id", "type", "end_node_id", and "properties".
+            - The relationship "type" must be in UPPER_SNAKE_CASE.
+            - `properties`: A JSON object for attributes of the relationship itself (e.g., date, location, manner). If none, use an empty object {{}}.
+
+    2.  **Language Requirement**: The *content* of the output (names, types, definitions, property values) MUST be in Vietnamese. The JSON keys ("id", "name", "properties", etc.) must remain in English as specified.
+
+    3.  **Domain Restriction - Education only**: 
+        - Extract a class only if it represents entities used in formal education ecosystems (K-12, higher-ed, vocational, research).
+
+        - In-scope categories (examples): Institution (University, Faculty, Department, School), Program (DegreeProgram, Major, Minor), Course (Course, CourseSection, Module, Syllabus, Curriculum), People with roles (Student, Instructor, TeachingAssistant, Advisor, Alumni, Staff), Assessment (Exam, Quiz, Assignment, Project, Grade, Credit, GPA), Enrollment & Admin (Enrollment, Prerequisite, Semester/Term, Timetable, ClassSchedule, Scholarship, TuitionInvoice), Learning Activities (Lecture, LaboratorySession, Tutorial, Seminar, Internship, Thesis), Infrastructure (Classroom, LabRoom, Campus, Library), Research (ResearchGroup, Publication, Supervision) when directly tied to teaching/research contexts in the input.
+
+        - Generic terms rule: Generic classes (Person, Organization, Event, Location, Document) are not allowed unless specialized with an explicit education role or qualifier (e.g., Student, UniversityDepartment, ExamEvent, CampusLocation, CourseSyllabus).
+
+        - Out-of-scope (hard exclude): consumer products, finance/crypto, restaurants, pets, celebrities, generic commerce items, weather, unrelated medical records, movies/entertainment (unless explicitly course material), vehicles, generic “Account/Ticket/Invoice” (unless TuitionInvoice), generic City/Country (unless used as CampusLocation).
+
+     4.  **Example JSON Format**:
+        {{
+          "classes": ["Trường đại học", "Quốc gia", "Thành phố"],
+          "instances": [
+            {{ "id": "dh_bach_khoa_tphcm", "name": "Trường Đại học Bách khoa", "type": "Trường đại học", "properties": {{ "nam_thanh_lap": 1957, "ten_goi_khac": "ĐH Bách Khoa TPHCM" }} }},
+            {{ "id": "viet_nam", "name": "Việt Nam", "type": "Quốc gia", "properties": {{ "thu_do": "Hà Nội" }} }}
+          ],
+          "relationships": [
+            {{ "start_node_id": "dh_bach_khoa_tphcm", "type": "TRU_SO_TAI", "end_node_id": "ha_noi", "properties": {{ "tu_nam": 1957 }} }}
+          ]
+        }}
+
+    IMPORTANT: Only extract properties that are explicitly mentioned in the source text. Do not infer or add information that is not present.
+
+    Extracted JSON object:
+    """
